@@ -17,6 +17,18 @@
 namespace f5::makham {
 
 
+    /// ## Future
+    /**
+     * Spawns a coroutine which will run asynchronously and whose result can
+     * be fetched from a `std::future. This can be used to bridge from a thread
+     * running outside of the coroutine executor to a coroutine, for example
+     * from `main`.
+     *
+     * The calling thread will suspend until the result is ready, so this must
+     * never be used between coroutines as the thread waiting on the future
+     * will not become available to run other coroutines. This can result in a
+     * deadlock at worst, but at best will be very inefficient.
+     */
     template<typename R>
     class future final {
       public:
