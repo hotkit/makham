@@ -11,6 +11,8 @@
 
 #include <thread-pool/fixed_function.hpp>
 
+#include <experimental/coroutine>
+
 
 namespace f5::makham {
 
@@ -22,6 +24,12 @@ namespace f5::makham {
 
     /// Execute the function in the Makham executor's thread pool.
     void post(function_type);
+
+    /// Resume this coroutine handle as a new job in the Makham
+    /// executor's thread pool.
+    inline void post(std::experimental::coroutine_handle<> coro) {
+        post([coro]() mutable { coro.resume(); });
+    }
 
 
 }

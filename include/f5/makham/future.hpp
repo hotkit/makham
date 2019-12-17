@@ -11,7 +11,6 @@
 
 #include <f5/makham/executor.hpp>
 
-#include <experimental/coroutine>
 #include <future>
 
 
@@ -62,10 +61,7 @@ namespace f5::makham {
         typename promise_type::handle_type coro;
 
         future(typename promise_type::handle_type h) : coro(h) {
-            f5::makham::post([this]() {
-                std::cout << "Starting future " << &coro.promise() << std::endl;
-                coro.resume();
-            });
+            makham::post(coro);
         }
     };
 

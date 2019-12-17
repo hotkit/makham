@@ -37,10 +37,6 @@ namespace f5::makham {
 template<typename R>
 inline std::size_t f5::makham::unit<R>::block() {
     auto const t = [this]() -> async<std::size_t> {
-        std::cout << "Starting to resume " << resumables.size() << " coroutines"
-                  << std::endl;
-        /// Start every resumable as separate tasks
-        for (auto &t : resumables) { t.start(); }
         /// Wait for them all to finish
         std::size_t count{};
         for (auto &t : resumables) {
@@ -52,7 +48,6 @@ inline std::size_t f5::makham::unit<R>::block() {
     };
     auto const f = [this](async<std::size_t> a) -> future<std::size_t> {
         std::cout << "Waiting for async" << std::endl;
-        a.start();
         co_return co_await a;
     };
     return f(t()).get();

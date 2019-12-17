@@ -11,7 +11,6 @@
 
 #include <f5/makham/executor.hpp>
 
-#include <experimental/coroutine>
 #include <iostream>
 #include <optional>
 #include <variant>
@@ -66,24 +65,9 @@ namespace f5::makham {
         async(async &&t) noexcept : coro(t.coro) { t.coro = {}; }
         async &operator=(async &&t) noexcept { swap(coro, t.coro); }
 
-        std::experimental::coroutine_handle<> handle() const { return coro; }
-
-        /// This can be called from many places and it is vital that we only
-        /// start exactly once.
-        void start() {
-            auto const running = coro.promise().started.exchange(true);
-            if (not running) {
-                f5::makham::post([this]() {
-                    std::cout << "Starting " << &coro.promise() << std::endl;
-                    coro.resume();
-                });
-            }
-        }
-
         /// ### Awaitable
         bool await_ready() const { return false; }
         void await_suspend(std::experimental::coroutine_handle<> awaiting) {
-            start();
             coro.promise().signal(awaiting);
         }
         R await_resume() { return coro.promise().get_value(); }
@@ -92,16 +76,13 @@ namespace f5::makham {
         using handle_type = std::experimental::coroutine_handle<promise_type>;
         handle_type coro;
 
-        async(handle_type c) : coro{c} {
-            std::cout << "Created async " << &coro.promise() << std::endl;
-        }
+        async(handle_type c) : coro{c} { makham::post(coro); }
     };
 
 
     /// An asynchronous promise
     struct async_promise {
         std::atomic<bool> has_value = false;
-        std::atomic<bool> started = false;
         std::atomic<std::experimental::coroutine_handle<>> continuation = {};
 
         void continuation_if_not_run() {
