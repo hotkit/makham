@@ -20,10 +20,6 @@ FSL_TEST_SUITE(makham_future);
 
 
 FSL_TEST_FUNCTION(get) {
-    auto f = []() -> f5::makham::future<int> {
-        auto a = answer();
-        auto const v = co_await a;
-        co_return v;
-    };
+    auto f = []() -> f5::makham::future<int> { co_return co_await answer(); };
     FSL_CHECK_EQ(f().get(), 42);
 }
