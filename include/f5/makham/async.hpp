@@ -11,7 +11,6 @@
 
 #include <f5/makham/executor.hpp>
 
-#include <iostream>
 #include <optional>
 #include <variant>
 
@@ -87,12 +86,7 @@ namespace f5::makham {
 
         void continuation_if_not_run() {
             auto h = continuation.exchange({});
-            if (h) {
-                std::cout << "Continuation for " << this << std::endl;
-                h.resume();
-            } else {
-                std::cout << "No continuation to run for " << this << std::endl;
-            }
+            if (h) { h.resume(); }
         }
         void signal(std::experimental::coroutine_handle<> s) {
             auto const old = continuation.exchange(s);
@@ -101,13 +95,9 @@ namespace f5::makham {
                         "A async can only have one awaitable"};
             }
             auto const done = has_value.exchange(false);
-            if (done) {
-                std::cout << "Value arrived when setting signal" << std::endl;
-                continuation_if_not_run();
-            }
+            if (done) { continuation_if_not_run(); }
         }
         void value_has_been_set() {
-            std::cout << "Value has been set" << std::endl;
             if (has_value.exchange(true)) {
                 throw std::runtime_error{"Coroutine already had a value set"};
             }

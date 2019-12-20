@@ -40,14 +40,12 @@ inline std::size_t f5::makham::unit<R>::block() {
         /// Wait for them all to finish
         std::size_t count{};
         for (auto &t : resumables) {
-            std::cout << "Awating async" << std::endl;
             co_await t;
             ++count;
         }
         co_return count;
     };
     auto const f = [this](async<std::size_t> a) -> future<std::size_t> {
-        std::cout << "Waiting for async" << std::endl;
         co_return co_await a;
     };
     return f(t()).get();
