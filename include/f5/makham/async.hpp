@@ -60,8 +60,10 @@ namespace f5::makham {
         async(async const &) = delete;
         async &operator=(async const &) = delete;
         /// Movable
-        async(async &&t) noexcept : coro(t.coro) { t.coro = {}; }
-        async &operator=(async &&t) noexcept { swap(coro, t.coro); }
+        async(async &&t) noexcept : coro(std::exchange(t.coro, {})) {}
+        async &operator=(async &&t) noexcept {
+            coro = std::exchange(t.coro, {});
+        }
 
         /// ### Awaitable
         bool await_ready() const { return false; }

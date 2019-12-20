@@ -40,8 +40,10 @@ namespace f5::makham {
         future(future const &) = delete;
         future &operator=(future const &) = delete;
         /// Movable
-        future(future &&t) noexcept : coro(t.coro) { t.coro = {}; }
-        future &operator=(future &&t) noexcept { swap(coro, t.coro); }
+        future(future &&t) noexcept : coro(std::exchange(t.coro, {})) {}
+        future &operator=(future &&t) noexcept {
+            coro = std::exchange(t.coro, {});
+        }
 
         struct promise_type final {
             using handle_type =
