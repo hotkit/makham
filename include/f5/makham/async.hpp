@@ -85,17 +85,19 @@ namespace f5::makham {
         std::atomic<std::experimental::coroutine_handle<>> continuation = {};
 
         void continuation_if_not_run() {
-            auto h = continuation.exchange({});
-            if (h) { h.resume(); }
+            if (auto h = continuation.exchange({}); h) { h.resume(); }
         }
         void signal(std::experimental::coroutine_handle<> s) {
-            auto const old = continuation.exchange(s);
-            if (old) {
-                throw std::invalid_argument{
-                        "A async can only have one awaitable"};
+            if (has_value.exchange(false)) {
+                s.resume();
+            } else {
+                auto const old = continuation.exchange(s);
+                if (old) {
+                    throw std::invalid_argument{
+                            "A async can only have one awaitable"};
+                }
+                if (has_value.exchange(false)) { continuation_if_not_run(); }
             }
-            auto const done = has_value.exchange(false);
-            if (done) { continuation_if_not_run(); }
         }
         void value_has_been_set() {
             if (has_value.exchange(true)) {
