@@ -70,6 +70,12 @@ namespace f5::makham {
 
         R get() { return coro.promise().fp.get_future().get(); }
 
+        /// Wrap an awaitable and return a future to its result
+        template<typename C>
+        static future wrap(C c) {
+            co_return co_await c;
+        }
+
       private:
         friend promise_type;
         typename promise_type::handle_type coro;
