@@ -13,11 +13,18 @@
 
 namespace {
     f5::makham::async<int> answer() { co_return 42; }
+
     f5::makham::async<unsigned> fib(unsigned n) {
         if (n < 3u)
             co_return 1;
         else
             co_return co_await fib(n - 1u) + co_await fib(n - 2u);
+    }
+
+    std::atomic<bool> did_nothing;
+    f5::makham::async<void> nothing() {
+        did_nothing.store(true);
+        co_return;
     }
 }
 
@@ -39,4 +46,11 @@ FSL_TEST_FUNCTION(get_with_await) {
 
 FSL_TEST_FUNCTION(seq_fibonacci) {
     FSL_CHECK_EQ(f5::makham::future<unsigned>::wrap(fib(10u)).get(), 55u);
+}
+
+
+FSL_TEST_FUNCTION(with_nothing) {
+    did_nothing.store(false);
+    f5::makham::future<void>::wrap(nothing()).get();
+    FSL_CHECK(did_nothing);
 }

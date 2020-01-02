@@ -17,6 +17,10 @@
 namespace f5::makham {
 
 
+    template<typename R>
+    struct future_promise;
+
+
     /// ## Future
     /**
      * Spawns a coroutine which will run asynchronously and whose result can
@@ -32,6 +36,8 @@ namespace f5::makham {
     template<typename R>
     class future final {
       public:
+        using promise_type = future_promise<R>;
+
         ~future() {
             if (coro) coro.destroy();
         }
@@ -44,29 +50,6 @@ namespace f5::makham {
         future &operator=(future &&t) noexcept {
             coro = std::exchange(t.coro, {});
         }
-
-        struct promise_type final {
-            using handle_type =
-                    std::experimental::coroutine_handle<promise_type>;
-
-            std::promise<R> fp = {};
-
-            auto get_return_object() {
-                return future{handle_type::from_promise(*this)};
-            }
-            auto return_value(R v) {
-                fp.set_value(std::move(v));
-                return std::experimental::suspend_never{};
-            }
-            void unhandled_exception() {
-                fp.set_exception(std::current_exception());
-            }
-
-            auto initial_suspend() {
-                return std::experimental::suspend_always{};
-            }
-            auto final_suspend() { return std::experimental::suspend_always{}; }
-        };
 
         R get() { return coro.promise().fp.get_future().get(); }
 
@@ -83,6 +66,48 @@ namespace f5::makham {
         future(typename promise_type::handle_type h) : coro(h) {
             makham::post(coro);
         }
+    };
+
+
+    template<typename R>
+    struct future_promise final {
+        using handle_type = std::experimental::coroutine_handle<future_promise>;
+
+        std::promise<R> fp = {};
+
+        auto get_return_object() {
+            return future<R>{handle_type::from_promise(*this)};
+        }
+        auto return_value(R v) {
+            fp.set_value(std::move(v));
+            return std::experimental::suspend_never{};
+        }
+        void unhandled_exception() {
+            fp.set_exception(std::current_exception());
+        }
+
+        auto initial_suspend() { return std::experimental::suspend_always{}; }
+        auto final_suspend() { return std::experimental::suspend_always{}; }
+    };
+    template<>
+    struct future_promise<void> final {
+        using handle_type = std::experimental::coroutine_handle<future_promise>;
+
+        std::promise<void> fp = {};
+
+        auto get_return_object() {
+            return future<void>{handle_type::from_promise(*this)};
+        }
+        auto return_void() {
+            fp.set_value();
+            return std::experimental::suspend_never{};
+        }
+        void unhandled_exception() {
+            fp.set_exception(std::current_exception());
+        }
+
+        auto initial_suspend() { return std::experimental::suspend_always{}; }
+        auto final_suspend() { return std::experimental::suspend_always{}; }
     };
 
 
