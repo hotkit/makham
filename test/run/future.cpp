@@ -15,10 +15,11 @@ namespace {
     f5::makham::async<int> answer() { co_return 42; }
 
     f5::makham::async<unsigned> fib(unsigned n) {
-        if (n < 3u)
+        if (n < 3u) {
             co_return 1;
-        else
+        } else {
             co_return co_await fib(n - 1u) + co_await fib(n - 2u);
+        }
     }
 
     std::atomic<bool> did_nothing;
