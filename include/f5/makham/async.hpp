@@ -9,6 +9,8 @@
 #pragma once
 
 
+#include <iostream>
+
 #include <f5/makham/executor.hpp>
 
 #include <variant>
@@ -53,30 +55,46 @@ namespace f5::makham {
         friend promise_type;
 
         ~async() {
-            if (coro) coro.destroy();
+            if (coro) {
+                std::cout << "Async destructed, and taking the promise with it"
+                          << std::endl;
+                coro.destroy();
+            } else {
+                std::cout << "Async destructed, but no coro" << std::endl;
+            }
         }
 
         /// Not copyable
         async(async const &) = delete;
         async &operator=(async const &) = delete;
         /// Movable
-        async(async &&t) noexcept : coro(std::exchange(t.coro, {})) {}
+        async(async &&t) noexcept : coro(std::exchange(t.coro, {})) {
+            std::cout << "Move construct async" << std::endl;
+        }
         async &operator=(async &&t) noexcept {
+            std::cout << "Moved assign async" << std::endl;
             coro = std::exchange(t.coro, {});
         }
 
         /// ### Awaitable
         bool await_ready() const { return false; }
         void await_suspend(std::experimental::coroutine_handle<> awaiting) {
+            std::cout << "Async signalling" << std::endl;
             coro.promise().signal(awaiting);
         }
-        R await_resume() { return coro.promise().get_value(); }
+        R await_resume() {
+            std::cout << "Fetching async value" << std::endl;
+            return coro.promise().get_value();
+        }
 
       private:
         using handle_type = std::experimental::coroutine_handle<promise_type>;
         handle_type coro;
 
-        async(handle_type c) : coro{c} { makham::post(coro); }
+        async(handle_type c) : coro{c} {
+            std::cout << "Async starting" << std::endl;
+            post(coro);
+        }
     };
 
 
@@ -86,15 +104,23 @@ namespace f5::makham {
         std::atomic<std::experimental::coroutine_handle<>> continuation = {};
 
         void continuation_if_not_run() {
-            if (auto h = continuation.exchange({}); h) { makham::post(h); }
+            if (auto h = continuation.exchange({}); h) {
+                std::cout << "Continuation starting" << std::endl;
+                makham::post(h);
+            }
         }
         void signal(std::experimental::coroutine_handle<> s) {
             auto const old = continuation.exchange(s);
             if (old) {
+                std::cout << "Async signal throwing" << std::endl;
                 throw std::invalid_argument{
-                        "A async can only have one awaitable"};
+                        "An async can only have one awaitable"};
             }
-            if (has_value.exchange(false)) { continuation_if_not_run(); }
+            if (has_value.exchange(false)) {
+                continuation_if_not_run();
+            } else {
+                std::cout << "Async value not available" << std::endl;
+            }
         }
         void value_has_been_set() {
             if (has_value.exchange(true)) {
