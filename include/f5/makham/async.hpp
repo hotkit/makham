@@ -1,5 +1,5 @@
 /**
-    Copyright 2019 Red Anchor Trading Co. Ltd.
+    Copyright 2019-2020 Red Anchor Trading Co. Ltd.
 
     Distributed under the Boost Software License, Version 1.0.
     See <http://www.boost.org/LICENSE_1_0.txt>
@@ -50,19 +50,11 @@ namespace f5::makham {
      */
     template<typename R, typename P>
     class async final {
+        bool awaited = false;
+
       public:
         using promise_type = P;
         friend promise_type;
-
-        ~async() {
-            if (coro) {
-                std::cout << "Async destructed, and taking the promise with it"
-                          << std::endl;
-                coro.destroy();
-            } else {
-                std::cout << "Async destructed, but no coro" << std::endl;
-            }
-        }
 
         /// Not copyable
         async(async const &) = delete;
@@ -75,15 +67,30 @@ namespace f5::makham {
             std::cout << "Moved assign async" << std::endl;
             coro = std::exchange(t.coro, {});
         }
+        ~async() {
+            // TODO If there has been no co_await we must wait before
+            // we destroy this thing...
+            if (coro) {
+                if (not awaited) {
+                    std::cout << "Async not awaited !!!!" << std::endl;
+                }
+                std::cout << "Async destructed, and taking the promise with it"
+                          << std::endl;
+                coro.destroy();
+            } else {
+                std::cout << "Async destructed, but no coro" << std::endl;
+            }
+        }
 
         /// ### Awaitable
         bool await_ready() const { return false; }
         void await_suspend(std::experimental::coroutine_handle<> awaiting) {
-            std::cout << "Async signalling" << std::endl;
+            std::cout << "Async will signal another coroutine" << std::endl;
             coro.promise().signal(awaiting);
         }
         R await_resume() {
-            std::cout << "Fetching async value" << std::endl;
+            std::cout << "Async returning co_awaited value" << std::endl;
+            awaited = true;
             return coro.promise().get_value();
         }
 
@@ -106,7 +113,7 @@ namespace f5::makham {
         void continuation_if_not_run() {
             if (auto h = continuation.exchange({}); h) {
                 std::cout << "Continuation starting" << std::endl;
-                makham::post(h);
+                h.resume();
             }
         }
         void signal(std::experimental::coroutine_handle<> s) {
@@ -123,6 +130,7 @@ namespace f5::makham {
             }
         }
         void value_has_been_set() {
+            std::cout << "Async value now set" << std::endl;
             if (has_value.exchange(true)) {
                 throw std::runtime_error{"Coroutine already had a value set"};
             }
@@ -146,6 +154,7 @@ namespace f5::makham {
             return async_type{handle_type::from_promise(*this)};
         }
         auto return_value(R v) {
+            std::cout << "Async co_returned value" << std::endl;
             value = std::move(v);
             value_has_been_set();
             return std::experimental::suspend_never{};

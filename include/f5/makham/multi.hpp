@@ -87,6 +87,11 @@ namespace f5::makham {
                         std::cout << "Enqueued not ready, listing" << std::endl;
                         std::lock_guard<std::mutex> lock{bottleneck};
                         overspill.push_back(h);
+                        if (ready) {
+                            std::cout << "Enqueued, but, oops, now ready!"
+                                      << std::endl;
+                            std::exit(49);
+                        }
                     }
                 }
 

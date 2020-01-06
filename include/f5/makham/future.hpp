@@ -1,5 +1,5 @@
 /**
-    Copyright 2019 Red Anchor Trading Co. Ltd.
+    Copyright 2019-2020 Red Anchor Trading Co. Ltd.
 
     Distributed under the Boost Software License, Version 1.0.
     See <http://www.boost.org/LICENSE_1_0.txt>
@@ -35,23 +35,43 @@ namespace f5::makham {
      */
     template<typename R>
     class future final {
+        std::atomic<bool> gotten = false;
+
       public:
         using promise_type = future_promise<R>;
-
-        ~future() {
-            if (coro) coro.destroy();
-        }
 
         /// Not copyable
         future(future const &) = delete;
         future &operator=(future const &) = delete;
         /// Movable
-        future(future &&t) noexcept : coro(std::exchange(t.coro, {})) {}
+        future(future &&t) noexcept : coro(std::exchange(t.coro, {})) {
+            std::cout << "Move construct future" << std::endl;
+        }
         future &operator=(future &&t) noexcept {
+            std::cout << "Move assign future" << std::endl;
             coro = std::exchange(t.coro, {});
         }
+        ~future() {
+            // TODO If there has been no get() we must wait before
+            // we destroy this thing...
+            if (coro) {
+                if (not gotten) {
+                    std::cout << "Future not got() !!!!" << std::endl;
+                }
+                //                 std::cout << "future destructed -- taking the
+                //                 promise with it"
+                //                           << std::endl;
+                coro.destroy();
+            } else {
+                //                 std::cout << "future destructed -- no coro"
+                //                 << std::endl;
+            }
+        }
 
-        R get() { return coro.promise().fp.get_future().get(); }
+        R get() {
+            gotten = true;
+            return coro.promise().fp.get_future().get();
+        }
 
         /// Wrap an awaitable and return a future to its result
         template<typename C>
@@ -64,7 +84,8 @@ namespace f5::makham {
         typename promise_type::handle_type coro;
 
         future(typename promise_type::handle_type h) : coro(h) {
-            makham::post(coro);
+            std::cout << "Future is here" << std::endl;
+            post(coro);
         }
     };
 
