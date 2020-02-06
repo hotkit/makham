@@ -107,7 +107,10 @@ namespace f5::makham {
                     std::cout << "Stopping at end of wrapper" << std::endl;
                     return std::experimental::suspend_always{};
                 }
-                void unhandled_exception() { std::exit(57); }
+                void unhandled_exception() {
+                    // TODO Handle the exception and pass it on
+                    std::exit(57);
+                }
                 auto return_void() {
                     std::cout << "Escaped wrapper::create" << std::endl;
                     /// Block new enqueues

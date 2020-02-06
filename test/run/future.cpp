@@ -44,7 +44,7 @@ FSL_TEST_FUNCTION(get_easy) {
 
 FSL_TEST_FUNCTION(get_with_await) {
     std::cout << "\n\nStarting get_with_await" << std::endl;
-    // TODO With the lambda below rather than `wrap` there are
+    // FIXME With the lambda below rather than `wrap` there are
     // segfaults when running. The `async` can be destructed twice
     //     auto f = []() -> f5::makham::future<int> { co_return co_await
     //     answer(); };

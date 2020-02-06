@@ -53,6 +53,7 @@ namespace f5::makham {
 
           public:
             Y operator*() {
+                // TODO Check for exception to throw
                 return std::exchange(pseq->coro.promise().value, {}).value();
             }
         };
