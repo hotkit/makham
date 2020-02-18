@@ -84,16 +84,27 @@ namespace f5::makham {
                         /// The result is already there, so we can just resume
                         post(h);
                     } else {
-                        std::cout << "Enqueued not ready, listing" << std::endl;
-                        std::lock_guard<std::mutex> lock{bottleneck};
-                        overspill.push_back(h);
+                        {
+                            std::cout << "Enqueued not ready, listing" << std::endl;
+                            std::lock_guard<std::mutex> lock{bottleneck};
+                            overspill.push_back(h);
+                        }
                         if (ready) {
                             std::cout << "Enqueued, but, oops, now ready!"
                                       << std::endl;
-                            std::exit(49);
+                            resume();
                         }
                     }
                 }
+                /// Calls to this need to be done very carefully
+                void resume() {
+                    std::lock_guard<std::mutex> lock{bottleneck};
+                    for (auto &h : overspill) {
+                        std::cout << "Resuming awaiting coro" << std::endl;
+                        post(h);
+                    }
+                    overspill.clear();
+                };
 
                 /// Coroutine promise API
                 auto get_return_object() {
@@ -119,14 +130,6 @@ namespace f5::makham {
                         throw std::runtime_error{
                                 "Coroutine has already been flushed"};
                     }
-                    auto resume = [this]() {
-                        std::lock_guard<std::mutex> lock{bottleneck};
-                        for (auto &h : overspill) {
-                            std::cout << "Resuming awaiting coro" << std::endl;
-                            post(h);
-                        }
-                        overspill.clear();
-                    };
                     resume();
                     /// We need to do this a second time because it is possible
                     /// that another handle arrived in the overspill after we
