@@ -1,5 +1,5 @@
 /**
-    Copyright 2019 Red Anchor Trading Co. Ltd.
+    Copyright 2019-2020 Red Anchor Trading Co. Ltd.
 
     Distributed under the Boost Software License, Version 1.0.
     See <http://www.boost.org/LICENSE_1_0.txt>
@@ -10,8 +10,7 @@
 
 
 #include <thread-pool/fixed_function.hpp>
-
-#include <experimental/coroutine>
+#include <f5/makham/coroutine.hpp>
 
 
 namespace f5::makham {
@@ -27,7 +26,7 @@ namespace f5::makham {
 
     /// Resume this coroutine handle as a new job in the Makham
     /// executor's thread pool.
-    inline void post(std::experimental::coroutine_handle<> coro) {
+    inline void post(coroutine_handle<> coro) {
         post([coro]() mutable { coro.resume(); });
     }
 

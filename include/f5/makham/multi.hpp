@@ -34,8 +34,7 @@ namespace f5::makham {
 
         struct wrapper {
             struct promise_type;
-            using handle_type =
-                    std::experimental::coroutine_handle<promise_type>;
+            using handle_type = coroutine_handle<promise_type>;
 
             handle_type coro;
 
@@ -74,11 +73,11 @@ namespace f5::makham {
 
                 /// Used for overspill only
                 std::mutex bottleneck;
-                std::vector<std::experimental::coroutine_handle<>> overspill;
+                std::vector<coroutine_handle<>> overspill;
 
                 /// Enqueue if the result isn't in yet, otherwise we just resume
                 /// the handle.
-                void enqueue(std::experimental::coroutine_handle<> h) {
+                void enqueue(coroutine_handle<> h) {
                     if (ready) {
                         std::cout << "Enqueued ready, just resume" << std::endl;
                         /// The result is already there, so we can just resume
@@ -112,12 +111,10 @@ namespace f5::makham {
                     std::cout << "Created new wrapper instance" << std::endl;
                     return wrapper{handle_type::from_promise(*this)};
                 }
-                auto initial_suspend() {
-                    return std::experimental::suspend_never{};
-                }
+                auto initial_suspend() { return suspend_never{}; }
                 auto final_suspend() {
                     std::cout << "Stopping at end of wrapper" << std::endl;
-                    return std::experimental::suspend_always{};
+                    return suspend_always{};
                 }
                 void unhandled_exception() {
                     // TODO Handle the exception and pass it on
@@ -136,7 +133,7 @@ namespace f5::makham {
                     /// that another handle arrived in the overspill after we
                     /// set `ready`
                     resume();
-                    return std::experimental::suspend_never{};
+                    return suspend_never{};
                 }
             };
             static wrapper create(multi *m, A a) {
@@ -159,7 +156,7 @@ namespace f5::makham {
 
         /// Awaitable
         bool await_ready() const { return false; }
-        void await_suspend(std::experimental::coroutine_handle<> awaiting) {
+        void await_suspend(coroutine_handle<> awaiting) {
             std::cout << "Enqueuing awaiting" << std::endl;
             wrapped.coro.promise().enqueue(awaiting);
         }

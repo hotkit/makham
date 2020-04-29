@@ -92,7 +92,7 @@ namespace f5::makham {
 
     template<typename R>
     struct future_promise final {
-        using handle_type = std::experimental::coroutine_handle<future_promise>;
+        using handle_type = coroutine_handle<future_promise>;
 
         std::promise<R> fp = {};
 
@@ -101,18 +101,18 @@ namespace f5::makham {
         }
         auto return_value(R v) {
             fp.set_value(std::move(v));
-            return std::experimental::suspend_never{};
+            return suspend_never{};
         }
         void unhandled_exception() {
             fp.set_exception(std::current_exception());
         }
 
-        auto initial_suspend() { return std::experimental::suspend_always{}; }
-        auto final_suspend() { return std::experimental::suspend_always{}; }
+        auto initial_suspend() { return suspend_always{}; }
+        auto final_suspend() { return suspend_always{}; }
     };
     template<>
     struct future_promise<void> final {
-        using handle_type = std::experimental::coroutine_handle<future_promise>;
+        using handle_type = coroutine_handle<future_promise>;
 
         std::promise<void> fp = {};
 
@@ -121,14 +121,14 @@ namespace f5::makham {
         }
         auto return_void() {
             fp.set_value();
-            return std::experimental::suspend_never{};
+            return suspend_never{};
         }
         void unhandled_exception() {
             fp.set_exception(std::current_exception());
         }
 
-        auto initial_suspend() { return std::experimental::suspend_always{}; }
-        auto final_suspend() { return std::experimental::suspend_always{}; }
+        auto initial_suspend() { return suspend_always{}; }
+        auto final_suspend() { return suspend_always{}; }
     };
 
 

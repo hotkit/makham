@@ -1,5 +1,5 @@
 /**
-    Copyright 2019 Red Anchor Trading Co. Ltd.
+    Copyright 2019-2020 Red Anchor Trading Co. Ltd.
 
     Distributed under the Boost Software License, Version 1.0.
     See <http://www.boost.org/LICENSE_1_0.txt>
@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-#include <experimental/coroutine>
+#include <f5/makham/coroutine.hpp>
 #include <optional>
 
 
@@ -66,26 +66,25 @@ namespace f5::makham {
         std::optional<Y> value = {};
         std::exception_ptr eptr = {};
 
-        using handle_type =
-                std::experimental::coroutine_handle<generator_promise>;
+        using handle_type = coroutine_handle<generator_promise>;
 
         auto yield_value(Y y) {
             std::cout << "Got a value from a co_yield" << std::endl;
             value = std::move(y);
-            return std::experimental::suspend_always{};
+            return suspend_always{};
         }
         void unhandled_exception() { eptr = std::current_exception(); }
         auto return_void() {
             std::cout << "generator ended" << std::endl;
             value = {};
-            return std::experimental::suspend_never{};
+            return suspend_never{};
         }
 
         auto get_return_object() {
             return generator<Y>{handle_type::from_promise(*this)};
         }
-        auto initial_suspend() { return std::experimental::suspend_always{}; }
-        auto final_suspend() { return std::experimental::suspend_always{}; }
+        auto initial_suspend() { return suspend_always{}; }
+        auto final_suspend() { return suspend_always{}; }
     };
 
 

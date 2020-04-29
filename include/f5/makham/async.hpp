@@ -13,6 +13,7 @@
 
 #include <f5/makham/executor.hpp>
 
+#include <atomic>
 #include <variant>
 
 
@@ -84,7 +85,7 @@ namespace f5::makham {
 
         /// ### Awaitable
         bool await_ready() const { return false; }
-        void await_suspend(std::experimental::coroutine_handle<> awaiting) {
+        void await_suspend(coroutine_handle<> awaiting) {
             std::cout << "Async will signal another coroutine" << std::endl;
             coro.promise().signal(awaiting);
         }
@@ -95,7 +96,7 @@ namespace f5::makham {
         }
 
       private:
-        using handle_type = std::experimental::coroutine_handle<promise_type>;
+        using handle_type = coroutine_handle<promise_type>;
         handle_type coro;
 
         async(handle_type c) : coro{c} {
@@ -108,7 +109,7 @@ namespace f5::makham {
     /// An asynchronous promise
     struct async_promise {
         std::atomic<bool> has_value = false;
-        std::atomic<std::experimental::coroutine_handle<>> continuation = {};
+        std::atomic<coroutine_handle<>> continuation = {};
 
         void continuation_if_not_run() {
             if (auto h = continuation.exchange({}); h) {
@@ -116,7 +117,7 @@ namespace f5::makham {
                 h.resume();
             }
         }
-        void signal(std::experimental::coroutine_handle<> s) {
+        void signal(coroutine_handle<> s) {
             auto const old = continuation.exchange(s);
             if (old) {
                 std::cout << "Async signal throwing" << std::endl;
@@ -136,8 +137,8 @@ namespace f5::makham {
             }
             continuation_if_not_run();
         }
-        auto initial_suspend() { return std::experimental::suspend_always{}; }
-        auto final_suspend() { return std::experimental::suspend_always{}; }
+        auto initial_suspend() { return suspend_always{}; }
+        auto final_suspend() { return suspend_always{}; }
     };
 
 
@@ -145,8 +146,7 @@ namespace f5::makham {
     template<typename R>
     struct promise_type final : public async_promise {
         using async_type = async<R, promise_type<R>>;
-        using handle_type =
-                std::experimental::coroutine_handle<promise_type<R>>;
+        using handle_type = coroutine_handle<promise_type<R>>;
 
         std::variant<std::monostate, std::exception_ptr, R> value = {};
 
@@ -157,7 +157,7 @@ namespace f5::makham {
             std::cout << "Async co_returned value" << std::endl;
             value = std::move(v);
             value_has_been_set();
-            return std::experimental::suspend_never{};
+            return suspend_never{};
         }
         void unhandled_exception() {
             value = std::current_exception();
@@ -179,8 +179,7 @@ namespace f5::makham {
     template<>
     struct promise_type<void> final : public async_promise {
         using async_type = async<void, promise_type<void>>;
-        using handle_type =
-                std::experimental::coroutine_handle<promise_type<void>>;
+        using handle_type = coroutine_handle<promise_type<void>>;
 
         std::exception_ptr value;
 
@@ -189,7 +188,7 @@ namespace f5::makham {
         }
         auto return_void() {
             value_has_been_set();
-            return std::experimental::suspend_never{};
+            return suspend_never{};
         }
         void unhandled_exception() {
             value = std::current_exception();
