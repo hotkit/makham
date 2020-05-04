@@ -9,12 +9,14 @@
 #pragma once
 
 
-#include <iostream>
-
 #include <f5/makham/executor.hpp>
 
 #include <atomic>
 #include <variant>
+
+#ifndef NDEBUG
+#include <iostream>
+#endif
 
 
 namespace f5 {
@@ -62,35 +64,47 @@ namespace f5::makham {
         async &operator=(async const &) = delete;
         /// Movable
         async(async &&t) noexcept : coro(std::exchange(t.coro, {})) {
+#ifndef NDEBUG
             std::cout << "Move construct async" << std::endl;
+#endif
         }
         async &operator=(async &&t) noexcept {
+#ifndef NDEBUG
             std::cout << "Moved assign async" << std::endl;
+#endif
             coro = std::exchange(t.coro, {});
         }
         ~async() {
             // TODO If there has been no co_await we must wait before
             // we destroy this thing...
             if (coro) {
+#ifndef NDEBUG
                 if (not awaited) {
                     std::cout << "Async not awaited !!!!" << std::endl;
                 }
                 std::cout << "Async destructed, and taking the promise with it"
                           << std::endl;
+#endif
                 coro.destroy();
+#ifndef NDEBUG
             } else {
                 std::cout << "Async destructed, but no coro" << std::endl;
+#endif
             }
         }
 
         /// ### Awaitable
         bool await_ready() const { return false; }
         void await_suspend(coroutine_handle<> awaiting) {
+#ifndef NDEBUG
             std::cout << "Async will signal another coroutine" << std::endl;
+#endif
             coro.promise().signal(awaiting);
         }
         R await_resume() {
+#ifndef NDEBUG
             std::cout << "Async returning co_awaited value" << std::endl;
+#endif
             awaited = true;
             return coro.promise().get_value();
         }
@@ -100,7 +114,9 @@ namespace f5::makham {
         handle_type coro;
 
         async(handle_type c) : coro{c} {
+#ifndef NDEBUG
             std::cout << "Async starting" << std::endl;
+#endif
             post(coro);
         }
     };
@@ -113,25 +129,33 @@ namespace f5::makham {
 
         void continuation_if_not_run() {
             if (auto h = continuation.exchange({}); h) {
+#ifndef NDEBUG
                 std::cout << "Continuation starting" << std::endl;
+#endif
                 h.resume();
             }
         }
         void signal(coroutine_handle<> s) {
             auto const old = continuation.exchange(s);
             if (old) {
+#ifndef NDEBUG
                 std::cout << "Async signal throwing" << std::endl;
+#endif
                 throw std::invalid_argument{
                         "An async can only have one awaitable"};
             }
             if (has_value.exchange(false)) {
                 continuation_if_not_run();
+#ifndef NDEBUG
             } else {
                 std::cout << "Async value not available" << std::endl;
+#endif
             }
         }
         void value_has_been_set() {
+#ifndef NDEBUG
             std::cout << "Async value now set" << std::endl;
+#endif
             if (has_value.exchange(true)) {
                 throw std::runtime_error{"Coroutine already had a value set"};
             }
@@ -154,7 +178,9 @@ namespace f5::makham {
             return async_type{handle_type::from_promise(*this)};
         }
         auto return_value(R v) {
+#ifndef NDEBUG
             std::cout << "Async co_returned value" << std::endl;
+#endif
             value = std::move(v);
             value_has_been_set();
             return suspend_never{};

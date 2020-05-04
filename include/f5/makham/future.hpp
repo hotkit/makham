@@ -13,6 +13,10 @@
 
 #include <future>
 
+#ifndef NDEBUG
+#include <iostream>
+#endif
+
 
 namespace f5::makham {
 
@@ -45,19 +49,25 @@ namespace f5::makham {
         future &operator=(future const &) = delete;
         /// Movable
         future(future &&t) noexcept : coro(std::exchange(t.coro, {})) {
+#ifndef NDEBUG
             std::cout << "Move construct future" << std::endl;
+#endif
         }
         future &operator=(future &&t) noexcept {
+#ifndef NDEBUG
             std::cout << "Move assign future" << std::endl;
+#endif
             coro = std::exchange(t.coro, {});
         }
         ~future() {
             // TODO If there has been no get() we must wait before
             // we destroy this thing...
             if (coro) {
+#ifndef NDEBUG
                 if (not gotten) {
                     std::cout << "Future not got() !!!!" << std::endl;
                 }
+#endif
                 //                 std::cout << "future destructed -- taking the
                 //                 promise with it"
                 //                           << std::endl;
@@ -84,7 +94,9 @@ namespace f5::makham {
         typename promise_type::handle_type coro;
 
         future(typename promise_type::handle_type h) : coro(h) {
+#ifndef NDEBUG
             std::cout << "Future is here" << std::endl;
+#endif
             post(coro);
         }
     };
