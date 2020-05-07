@@ -36,14 +36,12 @@ FSL_TEST_SUITE(makham_future);
 
 
 FSL_TEST_FUNCTION(get_easy) {
-    std::cout << "\n\nStarting get_easy" << std::endl;
     auto f = []() -> f5::makham::future<int> { co_return 42; };
     FSL_CHECK_EQ(f().get(), 42);
 }
 
 
 FSL_TEST_FUNCTION(get_with_await) {
-    std::cout << "\n\nStarting get_with_await" << std::endl;
     // FIXME With the lambda below rather than `wrap` there are
     // segfaults when running. The `async` can be destructed twice
     //     auto f = []() -> f5::makham::future<int> { co_return co_await
@@ -53,13 +51,12 @@ FSL_TEST_FUNCTION(get_with_await) {
 
 
 FSL_TEST_FUNCTION(seq_fibonacci) {
-    std::cout << "\n\nStarting seq_fibonacci" << std::endl;
+    // TODO This test segfaults on both clang and gcc so there is certainly a bug
     // FSL_CHECK_EQ(f5::makham::future<unsigned>::wrap(fib(10u)).get(), 55u);
 }
 
 
 FSL_TEST_FUNCTION(with_nothing) {
-    std::cout << "\n\nStarting with_nothing" << std::endl;
     did_nothing.store(false);
     f5::makham::future<void>::wrap(nothing()).get();
     FSL_CHECK(did_nothing);

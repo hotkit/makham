@@ -28,7 +28,6 @@ FSL_TEST_SUITE(generator);
 
 
 FSL_TEST_FUNCTION(fibonacci) {
-    std::cout << "\n\nStarting fibonacci" << std::endl;
     auto f = fib();
     auto pos = f.begin();
     FSL_CHECK_EQ(*pos, 1u);
