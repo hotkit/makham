@@ -18,40 +18,40 @@ namespace tp {
             ThreadPoolImpl<FixedFunction<void(), 128>, MPMCBoundedQueue>;
 
     /**
-     * @brief The ThreadPool class implements thread pool pattern.
-     * It is highly scalable and fast.
-     * It is header only.
-     * It implements both work-stealing and work-distribution balancing
-     * startegies.
-     * It implements cooperative scheduling strategy for tasks.
+     * The ThreadPool class implements thread pool pattern.
+     * * It is highly scalable and fast.
+     * * It is header only.
+     * * It implements both work-stealing and work-distribution balancing
+     * strategies.
+     * * It implements cooperative scheduling strategy for tasks.
      */
     template<typename Task, template<typename> class Queue>
     class ThreadPoolImpl {
       public:
         /**
-         * @brief ThreadPool Construct and start new thread pool.
+         * ThreadPool Construct and start new thread pool.
          * @param options Creation options.
          */
         explicit ThreadPoolImpl(
                 const ThreadPoolOptions &options = ThreadPoolOptions());
 
         /**
-         * @brief Move ctor implementation.
+         * Move ctor implementation.
          */
         ThreadPoolImpl(ThreadPoolImpl &&rhs) noexcept;
 
         /**
-         * @brief ~ThreadPool Stop all workers and destroy thread pool.
+         * Stop all workers and destroy thread pool.
          */
         ~ThreadPoolImpl();
 
         /**
-         * @brief Move assignment implementaion.
+         * Move assignment implementaion.
          */
         ThreadPoolImpl &operator=(ThreadPoolImpl &&rhs) noexcept;
 
         /**
-         * @brief post Try post job to thread pool.
+         * Try post job to thread pool.
          * @param handler Handler to be called from thread pool worker. It has
          * to be callable as 'handler()'.
          * @return 'true' on success, false otherwise.
@@ -61,7 +61,7 @@ namespace tp {
         bool tryPost(Handler &&handler);
 
         /**
-         * @brief post Post job to thread pool.
+         * Post job to thread pool.
          * @param handler Handler to be called from thread pool worker. It has
          * to be callable as 'handler()'.
          * @throw std::overflow_error if worker's queue is full.

@@ -6,7 +6,7 @@
 namespace tp {
 
     /**
-     * @brief The Worker class owns task queue and executing thread.
+     * The Worker class owns task queue and executing thread.
      * In thread it tries to pop task from queue. If queue is empty then it
      * tries to steal task from the sibling worker. If steal was unsuccessful
      * then spins with one millisecond delay.
@@ -15,36 +15,36 @@ namespace tp {
     class Worker {
       public:
         /**
-         * @brief Worker Constructor.
+         * Worker Constructor.
          * @param queue_size Length of undelaying task queue.
          */
         explicit Worker(size_t queue_size);
 
         /**
-         * @brief Move ctor implementation.
+         * Move ctor implementation.
          */
         Worker(Worker &&rhs) noexcept;
 
         /**
-         * @brief Move assignment implementaion.
+         * Move assignment implementaion.
          */
         Worker &operator=(Worker &&rhs) noexcept;
 
         /**
-         * @brief start Create the executing thread and start tasks execution.
+         * Create the executing thread and start tasks execution.
          * @param id Worker ID.
          * @param steal_donor Sibling worker to steal task from it.
          */
         void start(size_t id, Worker *steal_donor);
 
         /**
-         * @brief stop Stop all worker's thread and stealing activity.
+         * Stop all worker's thread and stealing activity.
          * Waits until the executing thread became finished.
          */
         void stop();
 
         /**
-         * @brief post Post task to queue.
+         * Post task to queue.
          * @param handler Handler to be executed in executing thread.
          * @return true on success.
          */
@@ -52,22 +52,21 @@ namespace tp {
         bool post(Handler &&handler);
 
         /**
-         * @brief steal Steal one task from this worker queue.
+         * Steal one task from this worker queue.
          * @param task Place for stealed task to be stored.
          * @return true on success.
          */
         bool steal(Task &task);
 
         /**
-         * @brief getWorkerIdForCurrentThread Return worker ID associated with
-         * current thread if exists.
+         * Return worker ID associated with current thread if exists.
          * @return Worker ID.
          */
         static size_t getWorkerIdForCurrentThread();
 
       private:
         /**
-         * @brief threadFunc Executing thread function.
+         * Executing thread function.
          * @param id Worker ID to be associated with this thread.
          * @param steal_donor Sibling worker to steal task from it.
          */
