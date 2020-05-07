@@ -18,6 +18,10 @@
 #include <optional>
 #include <vector>
 
+#ifndef NDEBUG
+#include <iostream>
+#endif
+
 
 namespace f5::makham {
 
@@ -41,25 +45,35 @@ namespace f5::makham {
             wrapper(handle_type h) : coro{h} {}
             wrapper(wrapper const &w) : coro(w.coro) {
                 ++coro.promise().wraps;
+#ifndef NDEBUG
                 std::cout << "wrapper copied" << std::endl;
+#endif
             }
             wrapper(wrapper &&w) : coro{std::exchange(w.coro, {})} {
+#ifndef NDEBUG
                 std::cout << "wrapper moved" << std::endl;
+#endif
             }
             ~wrapper() {
                 if (coro) {
                     auto const count = --coro.promise().wraps;
                     if (not count) {
+#ifndef NDEBUG
                         std::cout << "wrapper destructed -- taking promise"
                                   << std::endl;
+#endif
                         coro.destroy();
+#ifndef NDEBUG
                     } else {
                         std::cout << "wrapper destructed -- promise survives"
                                   << std::endl;
+#endif
                     }
+#ifndef NDEBUG
                 } else {
                     std::cout << "wrapper destructed -- only move husk left"
                               << std::endl;
+#endif
                 }
             }
 
@@ -79,19 +93,25 @@ namespace f5::makham {
                 /// the handle.
                 void enqueue(coroutine_handle<> h) {
                     if (ready) {
+#ifndef NDEBUG
                         std::cout << "Enqueued ready, just resume" << std::endl;
+#endif
                         /// The result is already there, so we can just resume
                         post(h);
                     } else {
                         {
+#ifndef NDEBUG
                             std::cout << "Enqueued not ready, listing"
                                       << std::endl;
+#endif
                             std::lock_guard<std::mutex> lock{bottleneck};
                             overspill.push_back(h);
                         }
                         if (ready) {
+#ifndef NDEBUG
                             std::cout << "Enqueued, but, oops, now ready!"
                                       << std::endl;
+#endif
                             resume();
                         }
                     }
@@ -100,7 +120,9 @@ namespace f5::makham {
                 void resume() {
                     std::lock_guard<std::mutex> lock{bottleneck};
                     for (auto &h : overspill) {
+#ifndef NDEBUG
                         std::cout << "Resuming awaiting coro" << std::endl;
+#endif
                         post(h);
                     }
                     overspill.clear();
@@ -108,12 +130,16 @@ namespace f5::makham {
 
                 /// Coroutine promise API
                 auto get_return_object() {
+#ifndef NDEBUG
                     std::cout << "Created new wrapper instance" << std::endl;
+#endif
                     return wrapper{handle_type::from_promise(*this)};
                 }
                 auto initial_suspend() { return suspend_never{}; }
                 auto final_suspend() {
+#ifndef NDEBUG
                     std::cout << "Stopping at end of wrapper" << std::endl;
+#endif
                     return suspend_always{};
                 }
                 void unhandled_exception() {
@@ -121,7 +147,9 @@ namespace f5::makham {
                     std::exit(57);
                 }
                 auto return_void() {
+#ifndef NDEBUG
                     std::cout << "Escaped wrapper::create" << std::endl;
+#endif
                     /// Block new enqueues
                     if (ready.exchange(true)) {
                         /// Already returned. This is bad
@@ -139,9 +167,13 @@ namespace f5::makham {
             static wrapper create(multi *m, A a) {
                 std::optional<result_type> r;
                 m->pvalue = &r;
+#ifndef NDEBUG
                 std::cout << "Set pvalue address" << std::endl;
+#endif
                 r = co_await a;
+#ifndef NDEBUG
                 std::cout << "Set value" << std::endl;
+#endif
                 co_return;
             }
         } wrapped;
@@ -150,18 +182,27 @@ namespace f5::makham {
       public:
         multi(A &&a) : wrapped{wrapper::create(this, std::move(a))} {}
         multi(multi const &m) : pvalue{m.pvalue}, wrapped{m.wrapped} {
+#ifndef NDEBUG
             std::cout << "Multi copied" << std::endl;
+#endif
         }
-        ~multi() { std::cout << "multi destructed" << std::endl; }
-
+        ~multi() {
+#ifndef NDEBUG
+            std::cout << "multi destructed" << std::endl;
+#endif
+        }
         /// Awaitable
         bool await_ready() const { return false; }
         void await_suspend(coroutine_handle<> awaiting) {
+#ifndef NDEBUG
             std::cout << "Enqueuing awaiting" << std::endl;
+#endif
             wrapped.coro.promise().enqueue(awaiting);
         }
         result_type await_resume() {
+#ifndef NDEBUG
             std::cout << "Pulling value" << std::endl;
+#endif
             return **pvalue;
         }
     };
