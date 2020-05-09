@@ -1,0 +1,24 @@
+language: cpp
+dist: focal
+
+compiler:
+    - gcc
+    - clang
+
+env:
+    - CMAKE_BUILD_TYPE=Debug
+    - CMAKE_BUILD_TYPE=Release
+
+install:
+    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+    - sudo apt-get update -qq
+    - sudo apt-get install -qq -y ninja-build g++-10 clang-10
+
+script:
+    - mkdir build.tmp && cd build.tmp
+    - 'if [ "$CXX" = "g++" ]; then export CC=gcc-10; export CXX=g++-10; fi'
+    - 'if [ "$CXX" = "clang++" ]; then export CC=clang-10; export CXX=clang++-10; fi'
+    - cp ../.travis.CMakeLists.txt CMakeLists.txt
+    - cmake . -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -G Ninja
+    - ninja
+    - ninja check
