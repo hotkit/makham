@@ -21,7 +21,7 @@ install:
 script:
     - mkdir build.tmp && cd build.tmp
     - 'if [ "$CXX" = "g++" ]; then export CC=gcc-10; export CXX=g++-10; fi'
-    - 'if [ "$CXX" = "clang++" ]; then export CC=clang-10; export CXX=clang++-10; export CXXFLAGS="-stdlib=libc++"; export LD_FLAGS="-stdlib=libc++"; BOOST_EXTRA_OPTS="cxxflags=-stdlib=libc++ linkflags=-stdlib=libc++"; fi'
+    - 'if [ "$CXX" = "clang++" ]; then export CC=clang-10; export CXX=clang++-10; export CXXFLAGS="-stdlib=libc++"; export LD_FLAGS="-stdlib=libc++"; BOOST_EXTRA_OPTS="cxxflags=-stdlib=libc++ linkflags=-stdlib=libc++"; -DBOOST_TOOLSET=clang-10;fi'
     - git clone https://github.com/KayEss/f5-cord.git
     - git clone https://github.com/KayEss/f5-threading.git
     - git clone https://github.com/KayEss/fost-base.git
