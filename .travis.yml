@@ -9,6 +9,10 @@ env:
     - CMAKE_BUILD_TYPE=Debug
     - CMAKE_BUILD_TYPE=Release
 
+cache:
+  directories:
+    boost-cache
+
 install:
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - sudo apt-get update -qq
@@ -18,6 +22,13 @@ script:
     - mkdir build.tmp && cd build.tmp
     - 'if [ "$CXX" = "g++" ]; then export CC=gcc-10; export CXX=g++-10; fi'
     - 'if [ "$CXX" = "clang++" ]; then export CC=clang-10; export CXX=clang++-10; export CXXFLAGS="-stdlib=libc++"; export LD_FLAGS="-stdlib=libc++"; fi'
+    - git clone https://github.com/KayEss/f5-cord.git
+    - git clone https://github.com/KayEss/f5-threading.git
+    - git clone https://github.com/KayEss/fost-base.git
+    - git clone https://github.com/KayEss/fost-boost.git
+    - git clone https://github.com/KayEss/fost-crypto.git
+    - ln -s ../../boost-cache fost-boost/boost
     - cp ../.travis.CMakeLists.txt CMakeLists.txt
     - cmake . -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -G Ninja
     - ninja
+    - ninja check
