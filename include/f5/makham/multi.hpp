@@ -30,10 +30,12 @@ namespace f5::makham {
      * A wrapper for an awaitable that allows us to have more than one
      * client awaiting.
      */
-    template<typename A>
+    template<
+            typename A,
+            typename R = decltype(
+                    std::declval<typename A::promise_type>().get_value())>
     class multi final {
-        using result_type =
-                decltype(std::declval<typename A::promise_type>().get_value());
+        using result_type = R;
         std::optional<result_type> *pvalue;
 
         struct wrapper {

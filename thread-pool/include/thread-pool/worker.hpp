@@ -110,7 +110,7 @@ namespace tp {
     template<typename Task, template<typename> class Queue>
     inline void Worker<Task, Queue>::stop() {
         m_running_flag.store(false, std::memory_order_relaxed);
-        m_thread.join();
+        if (m_thread.joinable()) { m_thread.join(); }
     }
 
     template<typename Task, template<typename> class Queue>
