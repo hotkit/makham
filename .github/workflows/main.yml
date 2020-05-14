@@ -14,7 +14,7 @@ on:
 jobs:
   build:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -22,8 +22,8 @@ jobs:
 
     - name: Configure machine
       run: |
-        apt-get update -qq
-        apt-get install ninja-build cmake g++-10 clang
+        sudo apt-get update -qq
+        sudo apt-get install ninja-build cmake g++-10 clang
 
     - name: Configure build
       run: |
