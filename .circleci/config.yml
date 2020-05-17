@@ -33,15 +33,14 @@ jobs:
           name: libraries
           command: |
             git clone git@github.com:hotkit/fost-boost.git .circleci/boost
+            ln -s /opt/fost-boost/boost .circleci/boost/boost
             git clone git@github.com:hotkit/fost-base.git .circleci/fost-base
             git clone git@github.com:hotkit/fost-crypto.git .circleci/crypto
             git clone git@github.com:hotkit/cord.git .circleci/cord
             git clone git@github.com:hotkit/threading.git .circleci/threading
       - run:
           name: cmake
-          environment:
-            CMAKE_BUILD_TYPE: << parameters.variant >>
-          command: cmake -G Ninja -S .circleci -B .circleci $CMAKE_EXTRA
+          command: cmake -G Ninja -S .circleci -B .circleci -DCMAKE_BUILD_TYPE=<< parameters.variant >> $CMAKE_EXTRA
       - run:
           name: ninja
           command: ninja -j1 -C .circleci
