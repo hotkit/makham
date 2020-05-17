@@ -7,6 +7,13 @@ executors:
     environment:
       CC: clang
       CXX: clang++
+      CXXFLAGS: "-stdlib=libc++"
+      LD_FLAGS: "-stdlib=libc++"
+      BOOST_EXTRA_OPTS: "cxxflags=-stdlib=libc++ linkflags=-stdlib=libc++"
+      BOOST_TOOLSET: clang-10
+      BOOST_VMAJOR: 1
+      BOOST_VMINOR: 66
+      BOOST_VPATCH: 0
   gcc:
     docker:
     - image: fost/circleci
