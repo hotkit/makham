@@ -4,9 +4,9 @@ cmake_minimum_required(VERSION 3.10)
 ## Opt in to tests
 add_custom_target(check)
 
-add_subdirectory(f5-cord)
-add_subdirectory(f5-threading)
-add_subdirectory(fost-boost)
+add_subdirectory(boost)
+add_subdirectory(cord)
+add_subdirectory(crypto)
 add_subdirectory(fost-base)
-add_subdirectory(fost-crypto)
 add_subdirectory(.. makham)
+add_subdirectory(threading)
