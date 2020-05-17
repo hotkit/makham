@@ -10,7 +10,7 @@ executors:
       CXXFLAGS: "-stdlib=libc++"
       LD_FLAGS: "-stdlib=libc++"
       BOOST_EXTRA_OPTS: "cxxflags=-stdlib=libc++ linkflags=-stdlib=libc++"
-      CMAKE_EXTRA: '-DBOOST_TOOLSET: clang-10 -DBOOST_VMINOR: 66'
+      CMAKE_EXTRA: '-DBOOST_TOOLSET=clang-10 -DBOOST_VMINOR=66'
   gcc:
     docker:
     - image: fost/circleci
