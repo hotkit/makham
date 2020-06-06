@@ -12,6 +12,8 @@
 #include <f5/makham/executor.hpp>
 
 #include <atomic>
+#include <chrono>
+#include <thread>
 #include <variant>
 
 #ifndef NDEBUG
@@ -118,6 +120,10 @@ namespace f5::makham {
             std::cout << "Async starting" << std::endl;
 #endif
             post(coro);
+            /// TODO This delay clearly needs to be removed by fixing
+            /// what is presumed to be an underlying race condition.
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for(1ms);
         }
     };
 
