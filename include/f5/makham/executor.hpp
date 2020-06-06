@@ -12,6 +12,10 @@
 #include <thread-pool/fixed_function.hpp>
 #include <f5/makham/coroutine.hpp>
 
+#ifndef NDEBUG
+#include <iostream>
+#endif
+
 
 namespace f5::makham {
 
@@ -27,7 +31,20 @@ namespace f5::makham {
     /// Resume this coroutine handle as a new job in the Makham
     /// executor's thread pool.
     inline void post(coroutine_handle<> coro) {
-        post([coro]() mutable { coro.resume(); });
+        if (coro) {
+            post([coro]() mutable {
+#ifndef NDEBUG
+                if (not coro) {
+                    std::cout << "What happened to my coro?" << std::endl;
+                    return;
+                }
+#endif
+                coro.resume(); });
+        } else {
+#ifndef NDEBUG
+                std::cout << "Somebody wanted to resume a NULL coro" << std::endl;
+#endif
+        }
     }
 
 

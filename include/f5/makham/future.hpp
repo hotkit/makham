@@ -95,7 +95,7 @@ namespace f5::makham {
 
         future(typename promise_type::handle_type h) : coro(h) {
 #ifndef NDEBUG
-            std::cout << "Future is here" << std::endl;
+            std::cout << "Future constructed" << std::endl;
 #endif
             post(coro);
         }
@@ -112,10 +112,16 @@ namespace f5::makham {
             return future<R>{handle_type::from_promise(*this)};
         }
         auto return_value(R v) {
+#ifndef NDEBUG
+            std::cout << "Future co_returned value" << std::endl;
+#endif
             fp.set_value(std::move(v));
             return suspend_never{};
         }
         void unhandled_exception() {
+#ifndef NDEBUG
+            std::cout << "Future exception caught" << std::endl;
+#endif
             fp.set_exception(std::current_exception());
         }
 
@@ -132,10 +138,16 @@ namespace f5::makham {
             return future<void>{handle_type::from_promise(*this)};
         }
         auto return_void() {
+#ifndef NDEBUG
+            std::cout << "Future co_returned void" << std::endl;
+#endif
             fp.set_value();
             return suspend_never{};
         }
         void unhandled_exception() {
+#ifndef NDEBUG
+            std::cout << "Future exception caught" << std::endl;
+#endif
             fp.set_exception(std::current_exception());
         }
 

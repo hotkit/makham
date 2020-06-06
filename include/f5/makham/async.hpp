@@ -71,9 +71,16 @@ namespace f5::makham {
 #endif
         }
         async &operator=(async &&t) noexcept {
+            if (coro) {
 #ifndef NDEBUG
+            std::cout << "Moved assign async & found and old coro to destroy" << std::endl;
+#endif
+                coro.destroy();
+#ifndef NDEBUG
+            } else {
             std::cout << "Moved assign async" << std::endl;
 #endif
+            }
             coro = std::exchange(t.coro, {});
         }
         ~async() {
@@ -136,7 +143,7 @@ namespace f5::makham {
         void continuation_if_not_run() {
             if (auto h = continuation.exchange({}); h) {
 #ifndef NDEBUG
-                std::cout << "Continuation starting" << std::endl;
+                std::cout << "Async continuation starting" << std::endl;
 #endif
                 h.resume();
             }
@@ -154,7 +161,7 @@ namespace f5::makham {
                 continuation_if_not_run();
 #ifndef NDEBUG
             } else {
-                std::cout << "Async value not available" << std::endl;
+                std::cout << "Async value not available, continuation has been set" << std::endl;
 #endif
             }
         }
@@ -192,6 +199,9 @@ namespace f5::makham {
             return suspend_never{};
         }
         void unhandled_exception() {
+#ifndef NDEBUG
+            std::cout << "Async exception caught" << std::endl;
+#endif
             value = std::current_exception();
             value_has_been_set();
         }
@@ -219,10 +229,16 @@ namespace f5::makham {
             return async_type{handle_type::from_promise(*this)};
         }
         auto return_void() {
+#ifndef NDEBUG
+            std::cout << "Async co_returned void" << std::endl;
+#endif
             value_has_been_set();
             return suspend_never{};
         }
         void unhandled_exception() {
+#ifndef NDEBUG
+            std::cout << "Async exception caught" << std::endl;
+#endif
             value = std::current_exception();
             value_has_been_set();
         }
