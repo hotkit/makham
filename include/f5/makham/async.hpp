@@ -127,10 +127,12 @@ namespace f5::makham {
             std::cout << "Async starting" << std::endl;
 #endif
             post(coro);
+#ifdef __clang__
             /// TODO This delay clearly needs to be removed by fixing
             /// what is presumed to be an underlying race condition.
             using namespace std::chrono_literals;
             std::this_thread::sleep_for(1ms);
+#endif
         }
     };
 
@@ -146,6 +148,10 @@ namespace f5::makham {
                 std::cout << "Async continuation starting" << std::endl;
 #endif
                 h.resume();
+#ifndef NDEBUG
+            } else {
+                std::cout << "Async no continuation found to start yet" << std::endl;
+#endif
             }
         }
         void signal(coroutine_handle<> s) {
