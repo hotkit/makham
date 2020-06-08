@@ -39,10 +39,11 @@ namespace f5::makham {
                     return;
                 }
 #endif
-                coro.resume(); });
+                coro.resume();
+            });
         } else {
 #ifndef NDEBUG
-                std::cout << "Somebody wanted to resume a NULL coro" << std::endl;
+            std::cout << "Somebody wanted to resume a NULL coro" << std::endl;
 #endif
         }
     }

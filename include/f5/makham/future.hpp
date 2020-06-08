@@ -68,7 +68,7 @@ namespace f5::makham {
                     std::cout << "Future not got() !!!!" << std::endl;
                 }
                 std::cout << "Future destructed -- taking the promise with it"
-                            << std::endl;
+                          << std::endl;
 #endif
                 coro.destroy();
 #ifndef NDEBUG

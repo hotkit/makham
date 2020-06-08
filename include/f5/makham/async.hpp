@@ -73,12 +73,14 @@ namespace f5::makham {
         async &operator=(async &&t) noexcept {
             if (coro) {
 #ifndef NDEBUG
-            std::cout << "Moved assign async & found and old coro to destroy" << std::endl;
+                std::cout
+                        << "Moved assign async & found and old coro to destroy"
+                        << std::endl;
 #endif
                 coro.destroy();
 #ifndef NDEBUG
             } else {
-            std::cout << "Moved assign async" << std::endl;
+                std::cout << "Moved assign async" << std::endl;
 #endif
             }
             coro = std::exchange(t.coro, {});
@@ -150,7 +152,8 @@ namespace f5::makham {
                 h.resume();
 #ifndef NDEBUG
             } else {
-                std::cout << "Async no continuation found to start yet" << std::endl;
+                std::cout << "Async no continuation found to start yet"
+                          << std::endl;
 #endif
             }
         }
@@ -167,7 +170,9 @@ namespace f5::makham {
                 continuation_if_not_run();
 #ifndef NDEBUG
             } else {
-                std::cout << "Async value not available, continuation has been set" << std::endl;
+                std::cout << "Async value not available, continuation has been "
+                             "set"
+                          << std::endl;
 #endif
             }
         }
