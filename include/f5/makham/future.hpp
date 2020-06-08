@@ -50,12 +50,12 @@ namespace f5::makham {
         /// Movable
         future(future &&t) noexcept : coro(std::exchange(t.coro, {})) {
 #ifndef NDEBUG
-            std::cout << "Move construct future" << std::endl;
+            std::cout << "Future move construct future" << std::endl;
 #endif
         }
         future &operator=(future &&t) noexcept {
 #ifndef NDEBUG
-            std::cout << "Move assign future" << std::endl;
+            std::cout << "Future move assign future" << std::endl;
 #endif
             coro = std::exchange(t.coro, {});
         }
@@ -67,14 +67,14 @@ namespace f5::makham {
                 if (not gotten) {
                     std::cout << "Future not got() !!!!" << std::endl;
                 }
+                std::cout << "Future destructed -- taking the promise with it"
+                            << std::endl;
 #endif
-                //                 std::cout << "future destructed -- taking the
-                //                 promise with it"
-                //                           << std::endl;
                 coro.destroy();
+#ifndef NDEBUG
             } else {
-                //                 std::cout << "future destructed -- no coro"
-                //                 << std::endl;
+                std::cout << "Future destructed -- no coro" << std::endl;
+#endif
             }
         }
 
