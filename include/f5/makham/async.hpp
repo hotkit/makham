@@ -16,7 +16,7 @@
 #include <thread>
 #include <variant>
 
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
 #include <iostream>
 #endif
 
@@ -66,19 +66,19 @@ namespace f5::makham {
         async &operator=(async const &) = delete;
         /// Movable
         async(async &&t) noexcept : coro(std::exchange(t.coro, {})) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Move construct async" << std::endl;
 #endif
         }
         async &operator=(async &&t) noexcept {
             if (coro) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                 std::cout
                         << "Moved assign async & found and old coro to destroy"
                         << std::endl;
 #endif
                 coro.destroy();
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             } else {
                 std::cout << "Moved assign async" << std::endl;
 #endif
@@ -89,7 +89,7 @@ namespace f5::makham {
             // TODO If there has been no co_await we must wait before
             // we destroy this thing...
             if (coro) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                 if (not awaited) {
                     std::cout << "Async not awaited !!!!" << std::endl;
                 }
@@ -97,7 +97,7 @@ namespace f5::makham {
                           << std::endl;
 #endif
                 coro.destroy();
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             } else {
                 std::cout << "Async destructed, but no coro" << std::endl;
 #endif
@@ -107,13 +107,13 @@ namespace f5::makham {
         /// ### Awaitable
         bool await_ready() const { return false; }
         void await_suspend(coroutine_handle<> awaiting) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Async will signal another coroutine" << std::endl;
 #endif
             coro.promise().signal(awaiting);
         }
         R await_resume() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Async returning co_awaited value" << std::endl;
 #endif
             awaited = true;
@@ -125,7 +125,7 @@ namespace f5::makham {
         handle_type coro;
 
         async(handle_type c) : coro{c} {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Async starting" << std::endl;
 #endif
             post(coro);
@@ -140,11 +140,11 @@ namespace f5::makham {
 
         void continuation_if_not_run() {
             if (auto h = continuation.exchange({}); h) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                 std::cout << "Async continuation starting" << std::endl;
 #endif
                 post(h);
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             } else {
                 std::cout << "Async no continuation found to start yet"
                           << std::endl;
@@ -154,7 +154,7 @@ namespace f5::makham {
         void signal(coroutine_handle<> s) {
             auto const old = continuation.exchange(s);
             if (old) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                 std::cout << "Async signal throwing" << std::endl;
 #endif
                 throw std::invalid_argument{
@@ -162,7 +162,7 @@ namespace f5::makham {
             }
             if (has_value.exchange(false)) {
                 continuation_if_not_run();
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             } else {
                 std::cout << "Async value not available, continuation has been "
                              "set"
@@ -171,7 +171,7 @@ namespace f5::makham {
             }
         }
         void value_has_been_set() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Async value now set" << std::endl;
 #endif
             if (has_value.exchange(true)) {
@@ -196,7 +196,7 @@ namespace f5::makham {
             return async_type{handle_type::from_promise(*this)};
         }
         auto return_value(R v) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Async co_returned value" << std::endl;
 #endif
             value = std::move(v);
@@ -204,7 +204,7 @@ namespace f5::makham {
             return suspend_never{};
         }
         void unhandled_exception() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Async exception caught" << std::endl;
 #endif
             value = std::current_exception();
@@ -234,14 +234,14 @@ namespace f5::makham {
             return async_type{handle_type::from_promise(*this)};
         }
         auto return_void() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Async co_returned void" << std::endl;
 #endif
             value_has_been_set();
             return suspend_never{};
         }
         void unhandled_exception() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Async exception caught" << std::endl;
 #endif
             value = std::current_exception();

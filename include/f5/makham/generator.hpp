@@ -14,6 +14,10 @@
 #include <f5/makham/coroutine.hpp>
 #include <optional>
 
+#ifdef MAKHAM_STDOUT_TRACE
+#include <iostream>
+#endif
+
 
 namespace f5::makham {
 
@@ -69,13 +73,17 @@ namespace f5::makham {
         using handle_type = coroutine_handle<generator_promise>;
 
         auto yield_value(Y y) {
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Got a value from a co_yield" << std::endl;
+#endif
             value = std::move(y);
             return suspend_always{};
         }
         void unhandled_exception() { eptr = std::current_exception(); }
         auto return_void() {
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "generator ended" << std::endl;
+#endif
             value = {};
             return suspend_never{};
         }

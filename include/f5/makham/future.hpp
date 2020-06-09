@@ -13,7 +13,7 @@
 
 #include <future>
 
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
 #include <iostream>
 #endif
 
@@ -49,12 +49,12 @@ namespace f5::makham {
         future &operator=(future const &) = delete;
         /// Movable
         future(future &&t) noexcept : coro(std::exchange(t.coro, {})) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Future move construct future" << std::endl;
 #endif
         }
         future &operator=(future &&t) noexcept {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Future move assign future" << std::endl;
 #endif
             coro = std::exchange(t.coro, {});
@@ -63,7 +63,7 @@ namespace f5::makham {
             // TODO If there has been no get() we must wait before
             // we destroy this thing...
             if (coro) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                 if (not gotten) {
                     std::cout << "Future not got() !!!!" << std::endl;
                 }
@@ -71,7 +71,7 @@ namespace f5::makham {
                           << std::endl;
 #endif
                 coro.destroy();
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             } else {
                 std::cout << "Future destructed -- no coro" << std::endl;
 #endif
@@ -94,7 +94,7 @@ namespace f5::makham {
         typename promise_type::handle_type coro;
 
         future(typename promise_type::handle_type h) : coro(h) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Future constructed" << std::endl;
 #endif
             post(coro);
@@ -112,14 +112,14 @@ namespace f5::makham {
             return future<R>{handle_type::from_promise(*this)};
         }
         auto return_value(R v) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Future co_returned value" << std::endl;
 #endif
             fp.set_value(std::move(v));
             return suspend_never{};
         }
         void unhandled_exception() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Future exception caught" << std::endl;
 #endif
             fp.set_exception(std::current_exception());
@@ -138,14 +138,14 @@ namespace f5::makham {
             return future<void>{handle_type::from_promise(*this)};
         }
         auto return_void() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Future co_returned void" << std::endl;
 #endif
             fp.set_value();
             return suspend_never{};
         }
         void unhandled_exception() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Future exception caught" << std::endl;
 #endif
             fp.set_exception(std::current_exception());

@@ -12,7 +12,7 @@
 #include <thread-pool/fixed_function.hpp>
 #include <f5/makham/coroutine.hpp>
 
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
 #include <iostream>
 #endif
 
@@ -33,7 +33,7 @@ namespace f5::makham {
     inline void post(coroutine_handle<> coro) {
         if (coro) {
             post([coro]() mutable {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                 if (not coro) {
                     std::cout << "What happened to my coro?" << std::endl;
                     return;
@@ -42,7 +42,7 @@ namespace f5::makham {
                 coro.resume();
             });
         } else {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Somebody wanted to resume a NULL coro" << std::endl;
 #endif
         }

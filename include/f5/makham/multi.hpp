@@ -18,7 +18,7 @@
 #include <optional>
 #include <vector>
 
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
 #include <iostream>
 #endif
 
@@ -47,12 +47,12 @@ namespace f5::makham {
             wrapper(handle_type h) : coro{h} {}
             wrapper(wrapper const &w) : coro(w.coro) {
                 ++coro.promise().wraps;
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                 std::cout << "wrapper copied" << std::endl;
 #endif
             }
             wrapper(wrapper &&w) : coro{std::exchange(w.coro, {})} {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                 std::cout << "wrapper moved" << std::endl;
 #endif
             }
@@ -60,18 +60,18 @@ namespace f5::makham {
                 if (coro) {
                     auto const count = --coro.promise().wraps;
                     if (not count) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                         std::cout << "wrapper destructed -- taking promise"
                                   << std::endl;
 #endif
                         coro.destroy();
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                     } else {
                         std::cout << "wrapper destructed -- promise survives"
                                   << std::endl;
 #endif
                     }
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                 } else {
                     std::cout << "wrapper destructed -- only move husk left"
                               << std::endl;
@@ -95,14 +95,14 @@ namespace f5::makham {
                 /// the handle.
                 void enqueue(coroutine_handle<> h) {
                     if (ready) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                         std::cout << "Enqueued ready, just resume" << std::endl;
 #endif
                         /// The result is already there, so we can just resume
                         post(h);
                     } else {
                         {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                             std::cout << "Enqueued not ready, listing"
                                       << std::endl;
 #endif
@@ -110,7 +110,7 @@ namespace f5::makham {
                             overspill.push_back(h);
                         }
                         if (ready) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                             std::cout << "Enqueued, but, oops, now ready!"
                                       << std::endl;
 #endif
@@ -122,7 +122,7 @@ namespace f5::makham {
                 void resume() {
                     std::lock_guard<std::mutex> lock{bottleneck};
                     for (auto &h : overspill) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                         std::cout << "Resuming awaiting coro" << std::endl;
 #endif
                         post(h);
@@ -132,14 +132,14 @@ namespace f5::makham {
 
                 /// Coroutine promise API
                 auto get_return_object() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                     std::cout << "Created new wrapper instance" << std::endl;
 #endif
                     return wrapper{handle_type::from_promise(*this)};
                 }
                 auto initial_suspend() { return suspend_never{}; }
                 auto final_suspend() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                     std::cout << "Stopping at end of wrapper" << std::endl;
 #endif
                     return suspend_always{};
@@ -149,7 +149,7 @@ namespace f5::makham {
                     std::exit(57);
                 }
                 auto return_void() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                     std::cout << "Escaped wrapper::create" << std::endl;
 #endif
                     /// Block new enqueues
@@ -169,11 +169,11 @@ namespace f5::makham {
             static wrapper create(multi *m, A a) {
                 std::optional<result_type> r;
                 m->pvalue = &r;
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                 std::cout << "Set pvalue address" << std::endl;
 #endif
                 r = co_await a;
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
                 std::cout << "Set value" << std::endl;
 #endif
                 co_return;
@@ -184,25 +184,25 @@ namespace f5::makham {
       public:
         multi(A &&a) : wrapped{wrapper::create(this, std::move(a))} {}
         multi(multi const &m) : pvalue{m.pvalue}, wrapped{m.wrapped} {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Multi copied" << std::endl;
 #endif
         }
         ~multi() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "multi destructed" << std::endl;
 #endif
         }
         /// Awaitable
         bool await_ready() const { return false; }
         void await_suspend(coroutine_handle<> awaiting) {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Enqueuing awaiting" << std::endl;
 #endif
             wrapped.coro.promise().enqueue(awaiting);
         }
         result_type await_resume() {
-#ifndef NDEBUG
+#ifdef MAKHAM_STDOUT_TRACE
             std::cout << "Pulling value" << std::endl;
 #endif
             return **pvalue;
