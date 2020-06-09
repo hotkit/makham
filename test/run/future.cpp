@@ -54,7 +54,7 @@ FSL_TEST_FUNCTION(get_with_await) {
 
 FSL_TEST_FUNCTION(seq_fibonacci) {
     // TODO This test segfaults on both clang and gcc so there is certainly a bug
-    // FSL_CHECK_EQ(f5::makham::future<unsigned>::wrap(fib(10u)).get(), 55u);
+    FSL_CHECK_EQ(f5::makham::future<unsigned>::wrap(fib(10u)).get(), 55u);
 }
 
 
