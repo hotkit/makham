@@ -56,6 +56,8 @@ namespace f5::makham {
         class iterator {
             friend class generator;
             handle_type coro;
+
+            iterator() : coro{} {}
             iterator(generator *s) : coro{std::exchange(s->coro, {})} {
 #ifdef MAKHAM_STDOUT_TRACE
                 std::cout << "Created an iterator" << std::endl;
@@ -85,10 +87,25 @@ namespace f5::makham {
             auto &operator++() {
                 coro.resume();
                 throw_if_needed();
+                if (not coro.promise().value) {
+                    std::exchange(coro, {}).destroy();
+                }
                 return *this;
+            }
+
+            friend bool operator==(iterator const &l, iterator const &r) {
+                if (not l.coro && not r.coro) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            friend bool operator!=(iterator const &l, iterator const &r) {
+                return not(l == r);
             }
         };
         auto begin() { return iterator{this}; }
+        auto end() { return iterator{}; }
     };
 
 
@@ -107,6 +124,7 @@ namespace f5::makham {
             return suspend_always{};
         }
         void unhandled_exception() { eptr = std::current_exception(); }
+
         auto return_void() {
 #ifdef MAKHAM_STDOUT_TRACE
             std::cout << "generator ended" << std::endl;
