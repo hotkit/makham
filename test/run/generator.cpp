@@ -15,8 +15,7 @@ namespace {
 
     f5::makham::generator<std::size_t> fib() {
         std::size_t a{1}, b{1};
-        co_yield a;
-        co_yield b;
+        co_yield 1u;
         while (true) { co_yield a = std::exchange(b, a + b); }
     }
 
@@ -31,4 +30,9 @@ FSL_TEST_FUNCTION(fibonacci) {
     auto f = fib();
     auto pos = f.begin();
     FSL_CHECK_EQ(*pos, 1u);
+    FSL_CHECK_EQ(*++pos, 1u);
+    FSL_CHECK_EQ(*++pos, 2u);
+    FSL_CHECK_EQ(*++pos, 3u);
+    FSL_CHECK_EQ(*++pos, 5u);
+    FSL_CHECK_EQ(*++pos, 8u);
 }

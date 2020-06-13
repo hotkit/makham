@@ -60,6 +60,11 @@ namespace f5::makham {
                 // TODO Check for exception to throw
                 return std::exchange(pseq->coro.promise().value, {}).value();
             }
+
+            auto &operator++() {
+                pseq->coro.resume();
+                return *this;
+            }
         };
         auto begin() { return iterator{this}; }
     };
