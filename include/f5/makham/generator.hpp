@@ -8,7 +8,6 @@
 
 #pragma once
 
-
 #include <iostream>
 
 #include <f5/makham/coroutine.hpp>
@@ -32,7 +31,11 @@ namespace f5::makham {
         using handle_type = typename generator_promise<Y>::handle_type;
         handle_type coro;
 
-        generator(handle_type h) : coro(h) {}
+        generator(handle_type h) : coro(h) {
+#ifdef MAKHAM_STDOUT_TRACE
+            std::cout << "Created a generator" << std::endl;
+#endif
+        }
 
       public:
         using promise_type = generator_promise<Y>;
@@ -52,17 +55,36 @@ namespace f5::makham {
         /// Iteration
         class iterator {
             friend class generator;
-            generator *pseq;
-            iterator(generator *s) : pseq{s} { pseq->coro.resume(); }
+            handle_type coro;
+            iterator(generator *s) : coro{std::exchange(s->coro, {})} {
+#ifdef MAKHAM_STDOUT_TRACE
+                std::cout << "Created an iterator" << std::endl;
+#endif
+                coro.resume();
+                throw_if_needed();
+            }
+
+            void throw_if_needed() {
+                if (coro.promise().eptr) {
+                    std::rethrow_exception(coro.promise().eptr);
+                }
+            }
 
           public:
+            iterator(iterator const &) = delete;
+            iterator &operator=(iterator const &) = delete;
+
+            ~iterator() {
+                if (coro) { coro.destroy(); }
+            }
+
             Y operator*() {
-                // TODO Check for exception to throw
-                return std::exchange(pseq->coro.promise().value, {}).value();
+                return std::exchange(coro.promise().value, {}).value();
             }
 
             auto &operator++() {
-                pseq->coro.resume();
+                coro.resume();
+                throw_if_needed();
                 return *this;
             }
         };
